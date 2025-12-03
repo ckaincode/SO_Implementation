@@ -1,86 +1,223 @@
-#include "process.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <string>
 
-std::vector<Processo> ler_processos(const std::string &nome_arquivo)
+// Seus headers (devem estar na mesma pasta)
+#include "processo.h"
+#include "recursos.h"
+
+/*
+=========================================================
+Main para testes
+=========================================================
+*/
+
+// --- 1. FUNÇÃO PARA LER OS PROCESSOS ---
+std::vector<Processo *> ler_processos(std::string caminho_arquivo)
 {
-    std::vector<Processo> processos;
-    std::ifstream arquivo(nome_arquivo);
+    std::vector<Processo *> lista;
+    std::ifstream file(caminho_arquivo);
     std::string linha;
-    int pid_contador = 0;
+    int pid_counter = 0;
 
-    if (!arquivo.is_open())
+    if (!file.is_open())
     {
-        std::cerr << "Erro ao abrir o arquivo de processos: " << nome_arquivo << std::endl;
-        return processos;
+        std::cerr << "Erro: Nao foi possivel abrir " << caminho_arquivo << std::endl;
+        return lista;
     }
 
-    while (std::getline(arquivo, linha))
+    while (std::getline(file, linha))
     {
+        if (linha.empty())
+            continue;
         std::stringstream ss(linha);
-        std::string campo;
+        std::string segmento;
         std::vector<int> dados;
 
-        while (std::getline(ss, campo, ','))
+        while (std::getline(ss, segmento, ','))
         {
             try
             {
-                size_t start = campo.find_first_not_of(' ');
-                size_t end = campo.find_last_not_of(' ');
-                std::string trimmed_campo = (start == std::string::npos) ? "" : campo.substr(start, end - start + 1);
-
-                if (!trimmed_campo.empty())
-                {
-                    dados.push_back(std::stoi(trimmed_campo));
-                }
+                dados.push_back(std::stoi(segmento));
             }
-            catch (const std::exception &e)
+            catch (...)
             {
-                std::cerr << "Erro de conversão de dados na linha: " << linha << std::endl;
             }
         }
 
-        // Deve haver 8 campos lidos [cite: 109]
-        if (dados.size() == 8)
+        if (dados.size() >= 8)
         {
-            Processo novo_processo(
-                pid_contador++,
-                dados[0], // tempo_inicializacao
-                dados[1], // prioridade
-                dados[2], // tempo_processador
-                dados[3], // blocos_memoria
-                dados[4], // impressora_req
-                dados[5], // scanner_req
-                dados[6], // modem_req
-                dados[7]  // disco_req
-            );
-            processos.push_back(novo_processo);
+            // Cria o processo usando o construtor do seu processo.h
+            Processo *p = new Processo(
+                pid_counter,
+                dados[0], dados[1], dados[2], dados[3],
+                dados[4], dados[5], dados[6], dados[7]);
+            pid_counter++;
+            lista.push_back(p);
+        }
+    }
+    return lista;
+}
+
+// --- 2. FUNÇÃO PARA LER AS INSTRUÇÕES DE IO DO ARQUIVO FILES ---
+// Esta funcao apenas preenche o vetor instrucoes_io dentro de cada processo
+void vincular_io(std::string caminho_arquivo, std::vector<Processo *> &processos)
+{
+    std::ifstream file(caminho_arquivo);
+    std::string linha;
+
+    if (!file.is_open())
+        return;
+
+    // Pula as primeiras linhas que nao sao instrucoes de processo
+    // O formato padrao e: TotalBlocos (linha 1), QtdArquivosOcupados (linha 2)
+    std::getline(file, linha);
+    std::getline(file, linha);
+    int ocupados = 0;
+    try
+    {
+        ocupados = std::stoi(linha);
+    }
+    catch (...)
+    {
+    }
+
+    // Pula os arquivos pre-alocados
+    for (int i = 0; i < ocupados; i++)
+    {
+        std::getline(file, linha);
+    }
+
+    // Agora le as instrucoes: PID, Op, Nome, Tam
+    while (std::getline(file, linha))
+    {
+        if (linha.empty())
+            continue;
+
+        std::stringstream ss(linha);
+        std::string s_pid, s_op, nome, s_tam;
+
+        // Tenta ler PID
+        if (!std::getline(ss, s_pid, ','))
+            continue;
+
+        int pid = -1;
+        try
+        {
+            pid = std::stoi(s_pid);
+        }
+        catch (...)
+        {
+            continue;
+        }
+
+        // Se conseguiu ler PID, le o resto
+        std::getline(ss, s_op, ',');
+        std::getline(ss, nome, ',');
+        int tam = 0;
+        if (std::getline(ss, s_tam, ','))
+        {
+            try
+            {
+                tam = std::stoi(s_tam);
+            }
+            catch (...)
+            {
+            }
+        }
+
+        // Limpa espacos do nome
+        std::string nome_limpo = "";
+        for (char c : nome)
+            if (c != ' ')
+                nome_limpo += c;
+
+        // Procura o processo e adiciona a instrucao
+        for (auto p : processos)
+        {
+            if (p->PID == pid)
+            {
+                Instrucao inst;
+                inst.pid = pid;
+                try
+                {
+                    inst.codigo = std::stoi(s_op);
+                }
+                catch (...)
+                {
+                    inst.codigo = 0;
+                }
+                inst.arquivo = nome_limpo;
+                inst.blocos = tam;
+                p->instrucoes_io.push_back(inst);
+                break;
+            }
+        }
+    }
+}
+
+// --- 3. MAIN DE VALIDAÇÃO ---
+int main(int argc, char **argv)
+{
+
+    // Caminhos padrao (altere se necessario)
+    std::string f_proc = "Testes/processes.txt";
+    std::string f_file = "Testes/files.txt";
+
+    if (argc > 1)
+        f_proc = argv[1];
+    if (argc > 2)
+        f_file = argv[2];
+
+    // Carrega dados
+    std::vector<Processo *> processos = ler_processos(f_proc);
+    vincular_io(f_file, processos);
+
+    // Instancia gerenciador de recursos (recursos.h)
+    GerenciadorRecursos rec;
+
+    std::cout << ">>> VALIDACAO DE PROCESSO.H E RECURSOS.H <<<\n";
+    std::cout << "--------------------------------------------------------------------------------\n";
+    std::cout << "PID | Prio | Quantum (Calc) | Rec Solicitados (I/S/M/D) | Alocacao? | IOs Lidas\n";
+    std::cout << "--------------------------------------------------------------------------------\n";
+
+    for (Processo *p : processos)
+    {
+
+        // 1. Valida resetar_quantum() do processo.h
+        p->resetar_quantum();
+
+        // 2. Tenta alocar recursos usando recursos.h
+        bool conseguiu_alocar = rec.alocar(p);
+
+        // Printa resultado
+        std::cout << p->PID << "   | "
+                  << p->prioridade_original << "    | "
+                  << p->quantum_restante << "\t\t| "
+                  << p->impressora << "/" << p->scanner << "/" << p->modem << "/" << p->disco << "\t\t    | ";
+
+        if (conseguiu_alocar)
+        {
+            std::cout << "SUCESSO   | ";
+            // Importante: Liberar para testar o proximo isoladamente
+            // Se quiser testar esgotamento de recursos, remova esta linha
+            rec.liberar(p);
         }
         else
         {
-            std::cerr << "Linha de processo mal formatada (esperado 8 campos): " << linha << std::endl;
+            std::cout << "FALHA     | ";
         }
+
+        std::cout << p->instrucoes_io.size() << std::endl;
     }
 
-    return processos;
-}
+    std::cout << "--------------------------------------------------------------------------------\n";
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2)
-    {
-        std::cerr << "Uso: " << argv[0] << " <caminho_para_processes.txt> [caminho_para_files.txt]" << std::endl;
-        return 1;
-    }
-    std::string processes_file = argv[1];
-    std::cout << "Iniciando leitura do arquivo de processos: " << processes_file << std::endl;
-    std::vector<Processo> processos_lidos = ler_processos(processes_file);
-    std::cout << "\nLeitura concluída. Total de processos lidos: " << processos_lidos.size() << std::endl;
-    for (const auto &p : processos_lidos)
-    {
-        p.exibir_dados_lidos();
-    }
+    // Cleanup
+    for (auto p : processos)
+        delete p;
+
     return 0;
 }
