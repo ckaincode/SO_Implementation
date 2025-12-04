@@ -4,7 +4,9 @@
 
 #include <iostream>
 #include <vector>
-#include "bloco.cpp"
+#include "bloco.h"
+#include "processo.h"
+
 class GerenciadorMemoria
 {
 private:
@@ -15,14 +17,19 @@ private:
 public:
     GerenciadorMemoria() : memoria(TAM_TOTAL) {}
 
-    int alocar(int pid, int blocosRequeridos, int prioridade)
+    int alocar(Processo *p)
     {
-        bool isTempoReal = (prioridade == 0);
+        bool isTempoReal = (p->prioridade_original == 0);
         int inicioBusca = isTempoReal ? 0 : TAM_TEMPO_REAL;
         int fimBusca = isTempoReal ? TAM_TEMPO_REAL : TAM_TOTAL;
 
-        int offset = buscarGravarBlocoDisponivel(inicioBusca, fimBusca, pid, blocosRequeridos);
-        return offset;
+        int endereco = buscarGravarBlocoDisponivel(inicioBusca, fimBusca, p->PID, p->blocos_mem_req);
+
+        if (endereco == -1)
+            return false;
+
+        p->offset_memoria = endereco;
+        return true;
     }
 
     int buscarGravarBlocoDisponivel(int inicio, int fim, int pid, int tamanho)
@@ -51,12 +58,13 @@ public:
         return -1;
     }
 
-    void desalocar(int pid, int offset, int tamanho)
+    void desalocar(Processo *p)
     {
-        if (offset < 0 || offset + tamanho > TAM_TOTAL)
-        {
+        int pid = p->PID;
+        int offset = p->offset_memoria;
+        int tamanho = p->blocos_mem_req;
+        if (offset == -1)
             return;
-        }
 
         for (int i = offset; i < offset + tamanho; ++i)
         {

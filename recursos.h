@@ -6,12 +6,12 @@
 class GerenciadorRecursos
 {
 public:
-    bool scanner_ocupado;
+    bool scanner_ocupado;   // Apenas 1 scanner, optado por booleano
     int impressoras_livres; // 2 total
-    bool modem_ocupado;
-    int satas_livres; // 3 total
+    bool modem_ocupado;     // Apenas 1 modem, optado por booleano
+    int satas_livres;       // 3 total
 
-    // Inicializa os recursos disponiveis
+    // Inicializa os recursos, todos disponiveis
     GerenciadorRecursos()
     {
         scanner_ocupado = false;
@@ -20,17 +20,20 @@ public:
         satas_livres = 3;
     }
 
-    // Tenta alocar todos os recursos que o processo precisa
+    // Tenta alocar todos os recursos que o processo precisa de uma só vez
+    // Garantimos a atomicidade da operação
     bool alocar(Processo *p)
     {
-
+        // Nessa etapa analisamos os recursos livres
+        // Caso true, passa para a proxima etapa e aloca o dispositivo
+        // Caso false, aborta a missão
         if (p->scanner == true && scanner_ocupado == true)
             return false;
         if (p->impressora > 0 && impressoras_livres <= 0)
             return false;
         if (p->modem == true && modem_ocupado == true)
             return false;
-        if (p->disco > 0 && satas_livres <= 0)
+        if (p->SATA > 0 && satas_livres <= 0)
             return false;
 
         // Se passou nas verificacoes, aloca (marca como ocupado)
@@ -45,7 +48,7 @@ public:
         if (p->modem == true)
             modem_ocupado = true;
 
-        if (p->disco > 0)
+        if (p->SATA > 0)
         {
             satas_livres = satas_livres - 1;
         }
@@ -67,7 +70,7 @@ public:
         if (p->modem == true)
             modem_ocupado = false;
 
-        if (p->disco > 0)
+        if (p->SATA > 0)
         {
             satas_livres = satas_livres + 1;
         }

@@ -4,14 +4,16 @@
 #include <vector>
 #include <string>
 
+// Armazena as operações de arquivos (files.txt)
 struct Instrucao
 {
     int pid;
-    int codigo; // 0 = Criar, 1 = Deletar
+    int codigo; // (0)Criar, (1)Deletar
     std::string arquivo;
-    int blocos; // Usado so na criacao
+    int blocos; // Usado só na criacao
 };
 
+// Estados possíveis do processo
 enum Estado
 {
     PRONTO,
@@ -23,9 +25,9 @@ enum Estado
 class Processo
 {
 public:
-    int PID;
-    int prioridade_original; // Prioridade que veio no .txt
-    int prioridade_atual;    // Prioridade que muda (Feedback)
+    int PID;                 // ID do processo(unico)
+    int prioridade_original; // Prioridade que veio no .txt, definine se é tempo real(0) ou usuário(1-5)
+    int prioridade_atual;    // Prioridade que muda dinamicamente, utilizamos aging para alterar essa prioridade
 
     int t_chegada;
     int t_total;
@@ -34,13 +36,13 @@ public:
 
     // Dados de Memoria
     int blocos_mem_req;
-    int offset_memoria; // Se for -1, nao esta na memoria
+    int offset_memoria; // Se for -1, nao está na memória
 
     // Dados de Hardware
     int impressora;
     bool scanner;
     bool modem;
-    int disco;
+    int SATA;
 
     Estado estado;
     int tempo_espera; // Contador para o Aging
@@ -58,7 +60,7 @@ public:
         t_chegada = t0;
         t_total = cpu;
         t_restante = cpu;
-        quantum_restante = 0;
+        quantum_restante = 0; // Definido quando vai para a CPU
         blocos_mem_req = mem;
         offset_memoria = -1; // -1 indica que nao alocou ainda
         impressora = imp;
@@ -72,18 +74,19 @@ public:
         else
             modem = false;
 
-        disco = dsk;
+        SATA = dsk;
         estado = PRONTO;
         tempo_espera = 0;
         pc = 0;
     }
 
+    // --- Lógica do Quantum Dinâmico ---
     // Implementa a tabela da especificação
     void resetar_quantum()
     {
         if (prioridade_atual == 0)
         {
-            quantum_restante = 10000; // Tempo Real nao acaba por tempo, motivo do valor alto
+            quantum_restante = 10000; // Tempo Real nao sofre preempção por tempo, motivo do valor alto
         }
         else if (prioridade_atual == 1)
         {
