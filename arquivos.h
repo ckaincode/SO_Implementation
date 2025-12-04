@@ -6,96 +6,74 @@
 #include <iostream>
 #include "processo.h"
 
-// Representa um arquivo no disco
 struct Arquivo
 {
     std::string nome;
     int bloco_inicial;
-    int tamanho;     // Quantos blocos ocupa
-    int criador_pid; // Id do criador do arquivo
+    int tamanho;
+    int criador_pid;
 };
 
 class GerenciadorArquivos
 {
 public:
-    int total_blocos;                     // Tamanho total do disco
-    std::vector<Arquivo> tabela_arquivos; // Lista de arquivos no disco
+    int total_blocos;
+    std::vector<Arquivo> tabela_arquivos;
 
-    GerenciadorArquivos()
-    {
-        total_blocos = 0;
-    }
+    GerenciadorArquivos() { total_blocos = 0; }
 
-    // Carrega o estado inicial do disco (files.txt)
     void inicializar(int tam, std::vector<Arquivo> iniciais)
     {
         total_blocos = tam;
         tabela_arquivos = iniciais;
     }
 
-    // Executa as operações de E/S
-    // Retorna uma string de ser impressa na tela pelo Dispatcher
     std::string operar(Processo *p, Instrucao inst)
     {
-        // Código 1 -> deletar
+        std::string op_id = std::to_string(inst.id_global);
+
+        // 1. DELETAR
         if (inst.codigo == 1)
         {
-            // Procura o arquivo na lista pelo nome
             for (int i = 0; i < tabela_arquivos.size(); i++)
             {
                 if (tabela_arquivos[i].nome == inst.arquivo)
                 {
-
-                    // Se for Tempo Real (0) OU se for o dono do arquivo
                     if (p->prioridade_original == 0 || tabela_arquivos[i].criador_pid == p->PID)
                     {
-
-                        // Remove o arquivo da tabela
                         tabela_arquivos.erase(tabela_arquivos.begin() + i);
-
-                        return "Operacao 1 => Sucesso\n O processo " + std::to_string(p->PID) + " deletou o arquivo " + inst.arquivo;
+                        return "Operacao " + op_id + " => Sucesso\n O processo " + std::to_string(p->PID) + " deletou o arquivo " + inst.arquivo + ".";
                     }
                     else
                     {
-                        return "Operacao 1 => Falha\n O processo " + std::to_string(p->PID) + " nao pode deletar o arquivo " + inst.arquivo + " (permissao negada).";
+                        return "Operacao " + op_id + " => Falha\n O processo " + std::to_string(p->PID) + " nao pode deletar o arquivo " + inst.arquivo + " (permissao negada).";
                     }
                 }
             }
-            // Arquivo não encontrado
-            return "Operacao 1 => Falha\n O arquivo " + inst.arquivo + " nao existe.";
+            // --- MENSAGEM AJUSTADA AQUI ---
+            return "Operacao " + op_id + " => Falha\n O processo " + std::to_string(p->PID) + " nao pode deletar o arquivo " + inst.arquivo + " porque ele nao existe.";
         }
 
-        // Código 0 - criar
+        // 2. CRIAR
         else
         {
-            // Algoritmo First-Fit no Disco
-            // Busca o primeiro buraco onde o arquivo caiba inteiro
-
-            // Tenta começar o arquivo em cada posição do disco
             for (int inicio = 0; inicio < total_blocos; inicio++)
             {
-
-                // Verifica se nao ultrapassa o fim do disco
                 if (inicio + inst.blocos > total_blocos)
                     break;
 
                 bool cabe = true;
-
-                // Verifica bloco por bloco se esta ocupado por qualquer arquivo
                 for (int k = 0; k < inst.blocos; k++)
                 {
                     int bloco_atual = inicio + k;
-
-                    // Checamos se ele conflita com qualquer arquivo existente
                     for (int j = 0; j < tabela_arquivos.size(); j++)
                     {
                         int inicio_arq = tabela_arquivos[j].bloco_inicial;
                         int fim_arq = tabela_arquivos[j].bloco_inicial + tabela_arquivos[j].tamanho - 1;
 
-                        // Se o bloco atual cai dentro do intervalo de um arquivo existente
                         if (bloco_atual >= inicio_arq && bloco_atual <= fim_arq)
                         {
-                            cabe = false; // Esta ocupado
+                            cabe = false;
                             break;
                         }
                     }
@@ -103,7 +81,6 @@ public:
                         break;
                 }
 
-                // Se couber, cria o arquivo
                 if (cabe)
                 {
                     Arquivo novo;
@@ -111,27 +88,24 @@ public:
                     novo.bloco_inicial = inicio;
                     novo.tamanho = inst.blocos;
                     novo.criador_pid = p->PID;
-
                     tabela_arquivos.push_back(novo);
 
-                    return "Operacao 0 => Sucesso\n O processo " + std::to_string(p->PID) + " criou o arquivo " + inst.arquivo + " (blocos " + std::to_string(inicio) + " a " + std::to_string(inicio + inst.blocos - 1) + ").";
+                    return "Operacao " + op_id + " => Sucesso\n O processo " + std::to_string(p->PID) + " criou o arquivo " + inst.arquivo + " (blocos " + std::to_string(inicio) + " a " + std::to_string(inicio + inst.blocos - 1) + ").";
                 }
             }
-            // Se rodou o disco todo e não achou buraco
-            return "Operacao 0 => Falha\n O processo " + std::to_string(p->PID) + " nao pode criar o arquivo " + inst.arquivo + " (falta de espaco).";
+            return "Operacao " + op_id + " => Falha\n O processo " + std::to_string(p->PID) + " nao pode criar o arquivo " + inst.arquivo + " (falta de espaco).";
         }
     }
 
     void imprimir_mapa()
     {
         std::cout << "Mapa de ocupacao do disco:" << std::endl;
-
-        // Cria um vetor visual para imprimir
         std::vector<std::string> visual;
         for (int i = 0; i < total_blocos; i++)
-            visual.push_back("0");
+        {
+            visual.push_back(" ");
+        }
 
-        // Preenche com os nomes dos arquivos
         for (int i = 0; i < tabela_arquivos.size(); i++)
         {
             for (int k = 0; k < tabela_arquivos[i].tamanho; k++)
@@ -143,7 +117,6 @@ public:
                 }
             }
         }
-        // Imprime o resultado final
         for (int i = 0; i < visual.size(); i++)
         {
             std::cout << visual[i] << " ";

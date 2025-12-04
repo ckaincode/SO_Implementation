@@ -27,11 +27,11 @@ public:
         int fim_busca = 0;
 
         // Define a area de busca dependendo se é Tempo Real ou Usuário
-        // Área reservada para Tempo Real, 64 blocos
         if (p->prioridade_original == 0)
         {
             inicio_busca = 0;
-            fim_busca = 64;
+            // Processos TR começam a busca em 0, mas podem ir até o fim da memória
+            fim_busca = 1024;
         }
         // Área reservada para Usuário, 960 blocos
         else

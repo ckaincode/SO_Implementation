@@ -10,7 +10,8 @@ struct Instrucao
     int pid;
     int codigo; // (0)Criar, (1)Deletar
     std::string arquivo;
-    int blocos; // Usado só na criacao
+    int blocos;    // Usado só na criacao
+    int id_global; // Identificador global
 };
 
 // Estados possíveis do processo
