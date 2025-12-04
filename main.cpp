@@ -6,7 +6,7 @@
 #include <map>
 
 #include "processo.h"
-#include "gerenciadorMemoria.h"
+#include "memoria.h"
 #include "recursos.h"
 #include "arquivos.h"
 #include "escalonador.h"

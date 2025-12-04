@@ -1,91 +1,73 @@
-#ifndef MEMORIA_H
-#define MEMORIA_H
 
+#ifndef GERENCIADOR_MEMORIA_H
+#define GERENCIADOR_MEMORIA_H
+
+#include <iostream>
 #include <vector>
 #include "processo.h"
 
 class GerenciadorMemoria
 {
 public:
-    // Vetor representando a RAM. -1 = Livre, Outro valor = PID do dono
     std::vector<int> ram;
+    const int TAM_TOTAL = 1024;
+    const int TAM_TEMPO_REAL = 64;
+    GerenciadorMemoria() : ram(TAM_TOTAL, -1) {}
 
-    GerenciadorMemoria()
+    int alocar(Processo *p)
     {
-        // A especificação pede tamanho fixo de 1024 blocos, inicializa tudo com -1 para indicar que está vazia
-        for (int i = 0; i < 1024; i++)
-        {
-            ram.push_back(-1);
-        }
+        bool isTempoReal = (p->prioridade_original == 0);
+        int inicioBusca = isTempoReal ? 0 : TAM_TEMPO_REAL;
+
+        int endereco = buscarGravarBlocoDisponivel(inicioBusca, TAM_TOTAL, p->PID, p->blocos_mem_req);
+
+        if (endereco == -1)
+            return false;
+
+        p->offset_memoria = endereco;
+        return true;
     }
 
-    // Algoritmo First-Fit
-    // Retorna true se conseguiu alocar, false se não coube.
-    bool alocar(Processo *p)
+    int buscarGravarBlocoDisponivel(int inicio, int fim, int pid, int tamanho)
     {
-        int inicio_busca = 0;
-        int fim_busca = 0;
-
-        // Define a area de busca dependendo se é Tempo Real ou Usuário
-        if (p->prioridade_original == 0)
+        for (int i = inicio; i <= fim - tamanho; ++i)
         {
-            inicio_busca = 0;
-            // Processos TR começam a busca em 0, mas podem ir até o fim da memória
-            fim_busca = 1024;
-        }
-        // Área reservada para Usuário, 960 blocos
-        else
-        {
-            inicio_busca = 64;
-            fim_busca = 1024;
-        }
-
-        int cont_livres = 0;
-        int idx_start = -1;
-
-        // Varre a memoria procurando espaco contiguo
-        for (int i = inicio_busca; i < fim_busca; i++)
-        {
-            if (ram[i] == -1) // Se achou espaco livre
+            bool espacoDisponivel = true;
+            for (int j = 0; j < tamanho; ++j)
             {
-                // Marca o primeiro bloco livre e então conta a quantidade contígua
-                if (cont_livres == 0)
-                    idx_start = i;
-                cont_livres++;
-
-                // Se achou tamanho suficiente
-                if (cont_livres == p->blocos_mem_req)
+                if (ram[i + j] != -1)
                 {
-                    // Preenche com o PID
-                    for (int j = idx_start; j < idx_start + cont_livres; j++)
-                    {
-                        ram[j] = p->PID;
-                    }
-                    p->offset_memoria = idx_start;
-                    return true;
+                    espacoDisponivel = false;
+                    i += j;
+                    break;
                 }
             }
-            else
+            if (espacoDisponivel)
             {
-                // Se achou bloco ocupado, zera a contagem
-                cont_livres = 0;
-                idx_start = -1;
+                for (int j = 0; j < tamanho; ++j)
+                {
+                    ram[i + j] = pid;
+                }
+                return i;
             }
         }
-        return false; // Nao achou espaco contiguo suficiente
+        return -1;
     }
 
-    // Libera a memoria usada pelo processo
     void desalocar(Processo *p)
     {
-        // Só desaloca se estiver alocado
-        if (p->offset_memoria != -1)
+        int pid = p->PID;
+        int offset = p->offset_memoria;
+        int tamanho = p->blocos_mem_req;
+        if (offset == -1)
+            return;
+
+        for (int i = offset; i < offset + tamanho; ++i)
         {
-            for (int i = p->offset_memoria; i < p->offset_memoria + p->blocos_mem_req; i++)
+            if (ram[i] == pid)
             {
-                ram[i] = -1; // Marca como livre
+                ram[i] = -1;
             }
-            p->offset_memoria = -1;
         }
     }
 };

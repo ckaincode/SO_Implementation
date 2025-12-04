@@ -5,7 +5,7 @@ TARGET = main
 all: $(TARGET)
 
 
-main: main.cpp processo.h recursos.h gerenciadorMemoria.h escalonador.h arquivos.h
+main: main.cpp processo.h recursos.h escalonador.h arquivos.h memoria.h
 	g++  main.cpp -o main
 
 run: main
