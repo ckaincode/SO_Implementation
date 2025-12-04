@@ -32,7 +32,7 @@ public:
     {
         std::string op_id = std::to_string(inst.id_global);
 
-        // 1. DELETAR
+        // DELETAR
         if (inst.codigo == 1)
         {
             for (int i = 0; i < tabela_arquivos.size(); i++)
@@ -50,11 +50,10 @@ public:
                     }
                 }
             }
-            // --- MENSAGEM AJUSTADA AQUI ---
             return "Operacao " + op_id + " => Falha\n O processo " + std::to_string(p->PID) + " nao pode deletar o arquivo " + inst.arquivo + " porque ele nao existe.";
         }
 
-        // 2. CRIAR
+        // CRIAR
         else
         {
             for (int inicio = 0; inicio < total_blocos; inicio++)

@@ -3,7 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <deque>
-#include <map> // <--- ADICIONADO PARA ORDENAR LOGS
+#include <map>
 
 #include "processo.h"
 #include "gerenciadorMemoria.h"
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
     std::vector<Processo *> processos = ler_processos(f_proc);
     GerenciadorArquivos ga;
 
-    // CORREÇÃO: Usando MAP para ordenar as mensagens pelo número da operação (1, 2, 3...)
+    // Usando MAP para ordenar as mensagens pelo número da operação (1, 2, 3...)
     std::map<int, std::string> log_sistema_arquivos;
 
     configurar_arquivos(f_files, processos, ga, log_sistema_arquivos);
@@ -208,10 +208,9 @@ int main(int argc, char **argv)
             }
         }
 
-        // 2. AGING
+        // AGING
         escalonador.executar_aging();
 
-        // 3. CARREGADOR DE MEMÓRIA (Multiprogramação)
         std::vector<std::deque<Processo *> *> filas_ptr;
         filas_ptr.push_back(&escalonador.fila_tr);
         filas_ptr.push_back(&escalonador.fila_p1);
@@ -233,7 +232,7 @@ int main(int argc, char **argv)
             }
         }
 
-        // 4. DISPATCHER
+        // DISPATCHER
         if (cpu == NULL)
         {
             bool escolheu_alguem = false;
@@ -279,7 +278,7 @@ int main(int argc, char **argv)
             }
         }
 
-        // 5. EXECUÇÃO DA CPU
+        // EXECUÇÃO DA CPU
         if (cpu != NULL)
         {
             std::cout << "P" << cpu->PID << " instruction " << (cpu->pc + 1) << std::endl;
