@@ -7,17 +7,23 @@
 #include "processo.h"
 
 /**
- * @brief Implementa o escalonador de processos com múltiplas filas de prioridade.
- * Gerencia seis filas distintas para processos de tempo real e de usuário,
+ * @brief Classe responsável pelo escalonamento de processos utilizando múltiplas filas de prioridade.
  *
+ * O escalonador mantém 6 filas:
+ *  - TR  (prioridade 0) → Tempo Real
+ *  - P1  (prioridade 1) → Usuário
+ *  - P2  (prioridade 2)
+ *  - P3  (prioridade 3)
+ *  - P4  (prioridade 4)
+ *  - P5  (prioridade 5)
+ *
+ * Também implementa um mecanismo simples de *aging* para evitar starvation:
+ * sempre que um processo passa 10 ciclos esperando, sua prioridade sobe uma fila.
  */
 class Escalonador
 {
 public:
-    // ----- Filas -----
-    // Especificação de trabalho exige 6 filas( tr - Tempo Real, p1-p5 - Usuário (Prioridade) )
-    //
-    //
+    // ----- Filas de escalonamento -----
     std::deque<Processo *> fila_tr;
     std::deque<Processo *> fila_p1;
     std::deque<Processo *> fila_p2;
@@ -26,39 +32,40 @@ public:
     std::deque<Processo *> fila_p5;
 
     /**
-     * @brief Adiciona um processo à fila correspondente com base em sua prioridade atual.
-     * @param p Ponteiro para o processo a ser adicionado.
+     * @brief Adiciona um processo na fila correspondente à sua prioridade atual.
+     * @param p Ponteiro para o processo a ser inserido.
      */
     void adicionar(Processo *p)
     {
-        if (p->prioridade_atual == 0)
+        switch (p->prioridade_atual)
         {
+        case 0:
             fila_tr.push_back(p);
-        }
-        else if (p->prioridade_atual == 1)
-        {
+            break;
+        case 1:
             fila_p1.push_back(p);
-        }
-        else if (p->prioridade_atual == 2)
-        {
+            break;
+        case 2:
             fila_p2.push_back(p);
-        }
-        else if (p->prioridade_atual == 3)
-        {
+            break;
+        case 3:
             fila_p3.push_back(p);
-        }
-        else if (p->prioridade_atual == 4)
-        {
+            break;
+        case 4:
             fila_p4.push_back(p);
-        }
-        else
-        {
+            break;
+        default:
             fila_p5.push_back(p);
+            break;
         }
     }
 
     /**
-     * @brief Retorna o próximo processo a ser executado com base na prioridade das filas.
+     * @brief Obtém o próximo processo a ser executado.
+     *
+     * A busca segue a ordem de prioridade:
+     * TR → P1 → P2 → P3 → P4 → P5.
+     *
      * @return Ponteiro para o próximo processo ou NULL se todas as filas estiverem vazias.
      */
     Processo *proximo()
@@ -80,115 +87,100 @@ public:
 
     /**
      * @brief Remove o processo da frente da fila correspondente à sua prioridade atual.
-     * @param p Ponteiro para o processo a ser removido.
+     * @param p Processo a ser removido.
      */
     void remover_da_frente(Processo *p)
     {
-        int prioridade = p->prioridade_atual;
-        if (prioridade == 0 && !fila_tr.empty())
-            fila_tr.pop_front();
-        else if (prioridade == 1 && !fila_p1.empty())
-            fila_p1.pop_front();
-        else if (prioridade == 2 && !fila_p2.empty())
-            fila_p2.pop_front();
-        else if (prioridade == 3 && !fila_p3.empty())
-            fila_p3.pop_front();
-        else if (prioridade == 4 && !fila_p4.empty())
-            fila_p4.pop_front();
-        else if (prioridade == 5 && !fila_p5.empty())
-            fila_p5.pop_front();
+        switch (p->prioridade_atual)
+        {
+        case 0:
+            if (!fila_tr.empty())
+                fila_tr.pop_front();
+            break;
+        case 1:
+            if (!fila_p1.empty())
+                fila_p1.pop_front();
+            break;
+        case 2:
+            if (!fila_p2.empty())
+                fila_p2.pop_front();
+            break;
+        case 3:
+            if (!fila_p3.empty())
+                fila_p3.pop_front();
+            break;
+        case 4:
+            if (!fila_p4.empty())
+                fila_p4.pop_front();
+            break;
+        case 5:
+            if (!fila_p5.empty())
+                fila_p5.pop_front();
+            break;
+        }
     }
 
     /**
-     * @brief Executa o mecanismo de aging para evitar starvation.
-     * Processos que aguardam há 10 ciclos em suas filas têm sua prioridade aumentada
+     * @brief Executa o mecanismo de aging.
+     *
+     * Todo processo que permanecer 10 ciclos esperando tem sua prioridade aumentada:
+     *  - P5 → P4
+     *  - P4 → P3
+     *  - P3 → P2
+     *  - P2 → P1
+     *
+     * Obs.: Tempo real (TR / prioridade 0) não sofre aging.
      */
     void executar_aging()
     {
+        // ----- Aging da fila P5 -----
+        aging_fila(fila_p5, fila_p4, 5, 4);
 
-        // Verifica Fila 5
-        int tamanho = fila_p5.size();
+        // ----- Aging da fila P4 -----
+        aging_fila(fila_p4, fila_p3, 4, 3);
+
+        // ----- Aging da fila P3 -----
+        aging_fila(fila_p3, fila_p2, 3, 2);
+
+        // ----- Aging da fila P2 -----
+        aging_fila(fila_p2, fila_p1, 2, 1);
+    }
+
+private:
+    /**
+     * @brief Função auxiliar para aplicar aging em uma fila genérica.
+     *
+     * @param fila_atual  Fila onde os processos estão esperando.
+     * @param fila_superior Fila para onde o processo sobe em caso de aging.
+     * @param prioridade_atual  Prioridade da fila atual.
+     * @param prioridade_subida Prioridade ao subir.
+     */
+    void aging_fila(std::deque<Processo *> &fila_atual,
+                    std::deque<Processo *> &fila_superior,
+                    int prioridade_atual,
+                    int prioridade_subida)
+    {
+        int tamanho = fila_atual.size();
+
         for (int i = 0; i < tamanho; i++)
         {
-            Processo *p = fila_p5.front(); // Pega o primeiro
-            fila_p5.pop_front();           // Tira da fila
-
-            p->tempo_espera++; // Envelhece o processo (mais um ciclo sem CPU)
-
-            // Se esperou 10 ciclos, sobre a prioridade
-            if (p->tempo_espera >= 10)
-            {
-                p->prioridade_atual--; // Sobe para p4
-                p->tempo_espera = 0;   //
-                // Promove para a fila de cima (No caso p4)
-                fila_p4.push_back(p);
-                std::cout << ">>> [AGING] Processo " << p->PID << " subiu para P4" << std::endl;
-            }
-            else
-            {
-                fila_p5.push_back(p);
-            }
-        }
-
-        tamanho = fila_p4.size();
-        for (int i = 0; i < tamanho; i++)
-        {
-            Processo *p = fila_p4.front();
-            fila_p4.pop_front();
+            Processo *p = fila_atual.front();
+            fila_atual.pop_front();
 
             p->tempo_espera++;
+
             if (p->tempo_espera >= 10)
             {
-                p->prioridade_atual--; // Sobe para 3
+                p->prioridade_atual = prioridade_subida;
                 p->tempo_espera = 0;
-                fila_p3.push_back(p);
-                std::cout << ">>> [AGING] Processo " << p->PID << " subiu para P3" << std::endl;
+
+                fila_superior.push_back(p);
+                std::cout << ">>> [AGING] Processo " << p->PID
+                          << " subiu para P" << prioridade_subida << std::endl;
             }
             else
             {
-                fila_p4.push_back(p);
-            }
-        }
-
-        // Verifica Fila 3
-        tamanho = fila_p3.size();
-        for (int i = 0; i < tamanho; i++)
-        {
-            Processo *p = fila_p3.front();
-            fila_p3.pop_front();
-
-            p->tempo_espera++;
-            if (p->tempo_espera >= 10)
-            {
-                p->prioridade_atual--; // Sobe para 2
-                p->tempo_espera = 0;
-                fila_p2.push_back(p);
-                std::cout << ">>> [AGING] Processo " << p->PID << " subiu para P2" << std::endl;
-            }
-            else
-            {
-                fila_p3.push_back(p);
-            }
-        }
-
-        // Verifica Fila 2
-        tamanho = fila_p2.size();
-        for (int i = 0; i < tamanho; i++)
-        {
-            Processo *p = fila_p2.front();
-            fila_p2.pop_front();
-
-            p->tempo_espera++;
-            if (p->tempo_espera >= 10)
-            {
-                p->prioridade_atual--; // Sobe para 1
-                p->tempo_espera = 0;
-                fila_p1.push_back(p);
-                std::cout << ">>> [AGING] Processo " << p->PID << " subiu para P1" << std::endl;
-            }
-            else
-            {
-                fila_p2.push_back(p);
+                fila_atual.push_back(p);
             }
         }
     }

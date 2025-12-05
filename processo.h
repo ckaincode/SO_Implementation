@@ -4,16 +4,21 @@
 #include <vector>
 #include <string>
 
-// Estrutura que representa uma instrução de I/O
+/**
+ * @brief Representa uma instrução de I/O do processo.
+ */
 struct Instrucao
 {
-    int pid;
-    int codigo; // (0)Criar, (1)Deletar
-    std::string arquivo;
-    int blocos;
-    int id_global;
+    int pid;             ///< PID do processo dono da instrução.
+    int codigo;          ///< Código da operação: 0 = Criar, 1 = Deletar.
+    std::string arquivo; ///< Nome do arquivo a manipular.
+    int blocos;          ///< Número de blocos envolvidos.
+    int id_global;       ///< ID único da instrução.
 };
-// Enumeração para os estados do processo
+
+/**
+ * @brief Estados possíveis de um processo.
+ */
 enum Estado
 {
     PRONTO,
@@ -21,105 +26,85 @@ enum Estado
     BLOQUEADO,
     FINALIZADO
 };
+
 /**
- * @brief Representa uma entidade de processo no pseudo-so.
- *
- * Armazena informações essenciais do processo, como PID, prioridades, tempos de execução,
- * requisitos de memória e hardware, estado atual, e lista de instruções de I/O.
+ * @brief Representa um processo no pseudo-SO, incluindo prioridades,
+ * recursos, estado e lista de instruções de I/O.
  */
 class Processo
 {
 public:
     int PID;
-    int prioridade_original; // Prioridade que veio no .txt, define se é tempo real(0) ou usuário(1-5)
-    int prioridade_atual;    // Prioridade que muda dinamicamente, utilizamos aging para alterar essa prioridade
+    int prioridade_original;
+    int prioridade_atual;
 
     int t_chegada;
     int t_total;
     int t_restante;
     int quantum_restante;
 
-    // Dados de Memoria
     int blocos_mem_req;
-    int offset_memoria; // Se for -1, nao está na memória
+    int offset_memoria;
 
-    // Dados de Hardware
     int impressora;
     bool scanner;
     bool modem;
     int SATA;
 
     Estado estado;
-    int tempo_espera; // Contador para o Aging
+    int tempo_espera;
 
-    // Lista de instrucoes desse processo
     std::vector<Instrucao> instrucoes_io;
-    int pc; // Program Counter para instrucoes de I/O
+    int pc;
 
-    // Construtor inicializando as variaveis
+    /**
+     * @brief Constrói um processo inicializando todos os atributos.
+     */
     Processo(int id, int t0, int prio, int cpu, int mem, int imp, int scan, int mod, int dsk)
+        : PID(id),
+          prioridade_original(prio),
+          prioridade_atual(prio),
+          t_chegada(t0),
+          t_total(cpu),
+          t_restante(cpu),
+          quantum_restante(0),
+          blocos_mem_req(mem),
+          offset_memoria(-1),
+          impressora(imp),
+          scanner(scan == 1),
+          modem(mod == 1),
+          SATA(dsk),
+          estado(PRONTO),
+          tempo_espera(0),
+          pc(0)
     {
-        PID = id;
-        prioridade_original = prio;
-        prioridade_atual = prio; // Comeca igual a original
-        t_chegada = t0;
-        t_total = cpu;
-        t_restante = cpu;
-        quantum_restante = 0; // Definido quando vai para a CPU
-        blocos_mem_req = mem;
-        offset_memoria = -1; // -1 indica que nao alocou ainda
-        impressora = imp;
-
-        if (scan == 1)
-            scanner = true;
-        else
-            scanner = false;
-        if (mod == 1)
-            modem = true;
-        else
-            modem = false;
-
-        SATA = dsk;
-        estado = PRONTO;
-        tempo_espera = 0;
-        pc = 0;
     }
 
     /**
-     * @brief Reseta o quantum restante baseado na prioridade atual do processo.
-     * Define o quantum conforme as regras:
-     * - Prioridade 0 (Tempo Real): 10000 (não sofre preempção por tempo)
-     * - Prioridade 1: 6 unidades de tempo
-     * - Prioridade 2: 5 unidades de tempo
-     * - Prioridade 3: 4 unidades de tempo
-     * - Prioridade 4: 3 unidades de tempo
-     * - Prioridade 5: 2 unidades de tempo
+     * @brief Reatribui o quantum do processo com base na prioridade atual.
      */
     void resetar_quantum()
     {
-        if (prioridade_atual == 0)
+        switch (prioridade_atual)
         {
-            quantum_restante = 10000; // Tempo Real nao sofre preempção por tempo, motivo do valor alto
-        }
-        else if (prioridade_atual == 1)
-        {
+        case 0:
+            quantum_restante = 10000;
+            break;
+        case 1:
             quantum_restante = 6;
-        }
-        else if (prioridade_atual == 2)
-        {
+            break;
+        case 2:
             quantum_restante = 5;
-        }
-        else if (prioridade_atual == 3)
-        {
+            break;
+        case 3:
             quantum_restante = 4;
-        }
-        else if (prioridade_atual == 4)
-        {
+            break;
+        case 4:
             quantum_restante = 3;
-        }
-        else
-        {
+            break;
+        default:
             quantum_restante = 2;
+            break;
         }
     }
 };

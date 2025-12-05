@@ -11,7 +11,16 @@
 #include "arquivos.h"
 #include "escalonador.h"
 
-// Funções para ler os processos
+/**
+ * @brief Lê o arquivo de processos e cria objetos Processo.
+ *
+ * Cada linha do arquivo deve conter:
+ * t_chegada, prioridade, tempo_cpu, blocos_memoria,
+ * impressora, scanner, modem, SATA.
+ *
+ * @param arquivo Nome do arquivo contendo os processos.
+ * @return Vetor com ponteiros para processos criados.
+ */
 std::vector<Processo *> ler_processos(std::string arquivo)
 {
     std::vector<Processo *> lista;
@@ -51,7 +60,17 @@ std::vector<Processo *> ler_processos(std::string arquivo)
     return lista;
 }
 
-// ALTERADO: Agora recebe o mapa de logs por referência para registrar erros de processos inexistentes
+/**
+ * @brief Configura operações de arquivos para cada processo.
+ *
+ * Lê o arquivo de operações, associa instruções aos processos e
+ * registra erros para operações cujo PID não existe.
+ *
+ * @param f_files Arquivo com informações e operações de arquivos.
+ * @param procs Vetor de processos existentes.
+ * @param ga Gerenciador de arquivos.
+ * @param logs Mapa onde erros de PID inexistente serão registrados.
+ */
 void configurar_arquivos(std::string f_files, std::vector<Processo *> &procs, GerenciadorArquivos &ga, std::map<int, std::string> &logs)
 {
     std::ifstream file(f_files);
@@ -137,6 +156,13 @@ void configurar_arquivos(std::string f_files, std::vector<Processo *> &procs, Ge
     }
 }
 
+/**
+ * @brief Imprime informações do processo selecionado pelo dispatcher.
+ *
+ * Exibe dados como PID, memória, prioridade, tempo restante e recursos.
+ *
+ * @param p Processo a ser exibido.
+ */
 void print_dispatcher(Processo *p)
 {
     std::cout << "dispatcher =>" << std::endl;
@@ -153,6 +179,20 @@ void print_dispatcher(Processo *p)
               << std::endl;
 }
 
+/**
+ * @brief Função principal do sistema operacional simulado.
+ *
+ * Responsável por:
+ * - Ler processos e operações de arquivo
+ * - Inicializar memória, recursos e escalonador
+ * - Controlar a execução ciclo a ciclo
+ * - Aplicar aging, dispatcher e encerramento dos processos
+ * - Registrar logs de operações de arquivo
+ *
+ * @param argc Quantidade de argumentos.
+ * @param argv Argumentos de linha de comando (processes.txt, files.txt).
+ * @return int Código de saída.
+ */
 int main(int argc, char **argv)
 {
     std::string f_proc = "processes.txt";
@@ -179,7 +219,6 @@ int main(int argc, char **argv)
     int processos_finalizados = 0;
     int total_procs = processos.size();
 
-    // Validação Inicial
     for (int i = 0; i < processos.size(); i++)
     {
         Processo *p = processos[i];
