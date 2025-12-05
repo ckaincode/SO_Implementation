@@ -2,222 +2,199 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <string>
+#include <deque>
+#include <map>
 
-// Seus headers (devem estar na mesma pasta)
 #include "processo.h"
+#include "memoria.h"
 #include "recursos.h"
+#include "arquivos.h"
+#include "escalonador.h"
+#include "setup.h"
 
-/*
-=========================================================
-Main para testes
-=========================================================
-*/
 
-// --- 1. FUNÇÃO PARA LER OS PROCESSOS ---
-std::vector<Processo *> ler_processos(std::string caminho_arquivo)
-{
-    std::vector<Processo *> lista;
-    std::ifstream file(caminho_arquivo);
-    std::string linha;
-    int pid_counter = 0;
-
-    if (!file.is_open())
-    {
-        std::cerr << "Erro: Nao foi possivel abrir " << caminho_arquivo << std::endl;
-        return lista;
-    }
-
-    while (std::getline(file, linha))
-    {
-        if (linha.empty())
-            continue;
-        std::stringstream ss(linha);
-        std::string segmento;
-        std::vector<int> dados;
-
-        while (std::getline(ss, segmento, ','))
-        {
-            try
-            {
-                dados.push_back(std::stoi(segmento));
-            }
-            catch (...)
-            {
-            }
-        }
-
-        if (dados.size() >= 8)
-        {
-            // Cria o processo usando o construtor do seu processo.h
-            Processo *p = new Processo(
-                pid_counter,
-                dados[0], dados[1], dados[2], dados[3],
-                dados[4], dados[5], dados[6], dados[7]);
-            pid_counter++;
-            lista.push_back(p);
-        }
-    }
-    return lista;
-}
-
-// --- 2. FUNÇÃO PARA LER AS INSTRUÇÕES DE IO DO ARQUIVO FILES ---
-// Esta funcao apenas preenche o vetor instrucoes_io dentro de cada processo
-void vincular_io(std::string caminho_arquivo, std::vector<Processo *> &processos)
-{
-    std::ifstream file(caminho_arquivo);
-    std::string linha;
-
-    if (!file.is_open())
-        return;
-
-    // Pula as primeiras linhas que nao sao instrucoes de processo
-    // O formato padrao e: TotalBlocos (linha 1), QtdArquivosOcupados (linha 2)
-    std::getline(file, linha);
-    std::getline(file, linha);
-    int ocupados = 0;
-    try
-    {
-        ocupados = std::stoi(linha);
-    }
-    catch (...)
-    {
-    }
-
-    // Pula os arquivos pre-alocados
-    for (int i = 0; i < ocupados; i++)
-    {
-        std::getline(file, linha);
-    }
-
-    // Agora le as instrucoes: PID, Op, Nome, Tam
-    while (std::getline(file, linha))
-    {
-        if (linha.empty())
-            continue;
-
-        std::stringstream ss(linha);
-        std::string s_pid, s_op, nome, s_tam;
-
-        // Tenta ler PID
-        if (!std::getline(ss, s_pid, ','))
-            continue;
-
-        int pid = -1;
-        try
-        {
-            pid = std::stoi(s_pid);
-        }
-        catch (...)
-        {
-            continue;
-        }
-
-        // Se conseguiu ler PID, le o resto
-        std::getline(ss, s_op, ',');
-        std::getline(ss, nome, ',');
-        int tam = 0;
-        if (std::getline(ss, s_tam, ','))
-        {
-            try
-            {
-                tam = std::stoi(s_tam);
-            }
-            catch (...)
-            {
-            }
-        }
-
-        // Limpa espacos do nome
-        std::string nome_limpo = "";
-        for (char c : nome)
-            if (c != ' ')
-                nome_limpo += c;
-
-        // Procura o processo e adiciona a instrucao
-        for (auto p : processos)
-        {
-            if (p->PID == pid)
-            {
-                Instrucao inst;
-                inst.pid = pid;
-                try
-                {
-                    inst.codigo = std::stoi(s_op);
-                }
-                catch (...)
-                {
-                    inst.codigo = 0;
-                }
-                inst.arquivo = nome_limpo;
-                inst.blocos = tam;
-                p->instrucoes_io.push_back(inst);
-                break;
-            }
-        }
-    }
-}
-
-// --- 3. MAIN DE VALIDAÇÃO ---
 int main(int argc, char **argv)
 {
-
-    // Caminhos padrao (altere se necessario)
-    std::string f_proc = "Testes/processes.txt";
-    std::string f_file = "Testes/files.txt";
-
+    std::string f_proc = "processes.txt";
+    std::string f_files = "files.txt";
     if (argc > 1)
         f_proc = argv[1];
     if (argc > 2)
-        f_file = argv[2];
+        f_files = argv[2];
 
-    // Carrega dados
     std::vector<Processo *> processos = ler_processos(f_proc);
-    vincular_io(f_file, processos);
+    GerenciadorArquivos ga;
 
-    // Instancia gerenciador de recursos (recursos.h)
+    // Usando MAP para ordenar as mensagens pelo número da operação (1, 2, 3...)
+    std::map<int, std::string> log_sistema_arquivos;
+
+    configurar_arquivos(f_files, processos, ga, log_sistema_arquivos);
+
+    GerenciadorMemoria mem;
     GerenciadorRecursos rec;
+    Escalonador escalonador;
 
-    std::cout << ">>> VALIDACAO DE PROCESSO.H E RECURSOS.H <<<\n";
-    std::cout << "--------------------------------------------------------------------------------\n";
-    std::cout << "PID | Prio | Quantum (Calc) | Rec Solicitados (I/S/M/D) | Alocacao? | IOs Lidas\n";
-    std::cout << "--------------------------------------------------------------------------------\n";
+    int tempo = 0;
+    Processo *cpu = NULL;
+    int processos_finalizados = 0;
+    int total_procs = processos.size();
 
-    for (Processo *p : processos)
+    // Validação Inicial
+    for (int i = 0; i < processos.size(); i++)
     {
-
-        // 1. Valida resetar_quantum() do processo.h
-        p->resetar_quantum();
-
-        // 2. Tenta alocar recursos usando recursos.h
-        bool conseguiu_alocar = rec.alocar(p);
-
-        // Printa resultado
-        std::cout << p->PID << "   | "
-                  << p->prioridade_original << "    | "
-                  << p->quantum_restante << "\t\t| "
-                  << p->impressora << "/" << p->scanner << "/" << p->modem << "/" << p->disco << "\t\t    | ";
-
-        if (conseguiu_alocar)
+        Processo *p = processos[i];
+        bool matar = false;
+        if (p->prioridade_original == 0 && p->blocos_mem_req > 64)
+            matar = true;
+        if (p->prioridade_original > 0 && p->blocos_mem_req > 960)
+            matar = true;
+        if (matar)
         {
-            std::cout << "SUCESSO   | ";
-            // Importante: Liberar para testar o proximo isoladamente
-            // Se quiser testar esgotamento de recursos, remova esta linha
-            rec.liberar(p);
+            p->estado = FINALIZADO;
+            processos_finalizados++;
         }
-        else
-        {
-            std::cout << "FALHA     | ";
-        }
-
-        std::cout << p->instrucoes_io.size() << std::endl;
     }
 
-    std::cout << "--------------------------------------------------------------------------------\n";
+    while (processos_finalizados < total_procs)
+    {
+        // 1. CHEGADA DE PROCESSOS
+        for (int i = 0; i < processos.size(); i++)
+        {
+            Processo *p = processos[i];
+            if (p->t_chegada == tempo && p->estado == PRONTO)
+            {
+                p->resetar_quantum();
+                escalonador.adicionar(p);
+            }
+        }
 
-    // Cleanup
-    for (auto p : processos)
-        delete p;
+        // AGING
+        escalonador.executar_aging();
 
+        std::vector<std::deque<Processo *> *> filas_ptr;
+        filas_ptr.push_back(&escalonador.fila_tr);
+        filas_ptr.push_back(&escalonador.fila_p1);
+        filas_ptr.push_back(&escalonador.fila_p2);
+        filas_ptr.push_back(&escalonador.fila_p3);
+        filas_ptr.push_back(&escalonador.fila_p4);
+        filas_ptr.push_back(&escalonador.fila_p5);
+
+        for (int f = 0; f < filas_ptr.size(); f++)
+        {
+            std::deque<Processo *> *fila = filas_ptr[f];
+            for (int i = 0; i < fila->size(); i++)
+            {
+                Processo *p = (*fila)[i];
+                if (p->offset_memoria == -1)
+                {
+                    mem.alocar(p);
+                }
+            }
+        }
+
+        // DISPATCHER
+        if (cpu == NULL)
+        {
+            bool escolheu_alguem = false;
+
+            for (int f = 0; f < filas_ptr.size(); f++)
+            {
+                std::deque<Processo *> *fila_atual = filas_ptr[f];
+                for (int i = 0; i < fila_atual->size(); i++)
+                {
+                    Processo *candidato = (*fila_atual)[i];
+                    bool tem_memoria = (candidato->offset_memoria != -1);
+                    bool tem_recursos = true;
+
+                    if (!tem_memoria)
+                    {
+                        tem_recursos = rec.alocar(candidato);
+                        if (tem_recursos)
+                        {
+                            tem_memoria = mem.alocar(candidato);
+                            if (!tem_memoria)
+                                rec.liberar(candidato);
+                        }
+                    }
+                    else
+                    {
+                        tem_recursos = rec.alocar(candidato);
+                    }
+
+                    if (tem_memoria && tem_recursos)
+                    {
+                        cpu = candidato;
+                        fila_atual->erase(fila_atual->begin() + i);
+                        cpu->estado = EXECUTANDO;
+                        print_dispatcher(cpu);
+                        std::cout << "process " << cpu->PID << " =>" << std::endl;
+                        std::cout << "P" << cpu->PID << " STARTED" << std::endl;
+                        escolheu_alguem = true;
+                        break;
+                    }
+                }
+                if (escolheu_alguem)
+                    break;
+            }
+        }
+
+        // EXECUÇÃO DA CPU
+        if (cpu != NULL)
+        {
+            std::cout << "P" << cpu->PID << " instruction " << (cpu->pc + 1) << std::endl;
+            cpu->pc++;
+
+            cpu->t_restante--;
+            cpu->quantum_restante--;
+
+            if (cpu->t_restante <= 0)
+            {
+                std::cout << "P" << cpu->PID << " return SIGINT \n"
+                          << std::endl;
+
+                for (int i = 0; i < cpu->instrucoes_io.size(); i++)
+                {
+                    std::string log = ga.operar(cpu, cpu->instrucoes_io[i]);
+                    // Armazena no mapa usando o ID Global da instrução como chave
+                    log_sistema_arquivos[cpu->instrucoes_io[i].id_global] = log;
+                }
+
+                // Não desaloca se for Tempo Real
+                if (cpu->prioridade_original > 0)
+                {
+                    mem.desalocar(cpu);
+                }
+
+                rec.liberar(cpu);
+                cpu->estado = FINALIZADO;
+                cpu = NULL;
+                processos_finalizados++;
+            }
+            else if (cpu->quantum_restante <= 0 && cpu->prioridade_original > 0)
+            {
+                if (cpu->prioridade_atual < 3)
+                    cpu->prioridade_atual++;
+                cpu->resetar_quantum();
+                cpu->estado = PRONTO;
+                escalonador.adicionar(cpu);
+                cpu = NULL;
+            }
+        }
+        tempo++;
+    }
+
+    // Impressão final ordenada pelo ID da operação graças ao map
+    std::cout << "Sistema de arquivos =>" << std::endl;
+    for (std::map<int, std::string>::iterator it = log_sistema_arquivos.begin(); it != log_sistema_arquivos.end(); ++it)
+    {
+        std::cout << it->second << std::endl;
+    }
+    std::cout << "\n"
+              << std::endl;
+
+    ga.imprimir_mapa();
+
+    for (int i = 0; i < processos.size(); i++)
+        delete processos[i];
     return 0;
 }
