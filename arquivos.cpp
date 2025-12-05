@@ -24,7 +24,7 @@ std::string GerenciadorArquivos::operar(Processo *p, Instrucao inst)
                 if (p->prioridade_original == 0 || tabela_arquivos[i].criador_pid == p->PID)
                 {
                     tabela_arquivos.erase(tabela_arquivos.begin() + i);
-                    return "Operacao " + op_id + " => Sucesso\n O processo " + std::to_string(p->PID) + " deletou o arquivo " + inst.arquivo + ".";
+                    return "Operacaos " + op_id + " => Sucesso\n O processo " + std::to_string(p->PID) + " deletou o arquivo " + inst.arquivo + ".";
                 }
                 else
                 {
