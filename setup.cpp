@@ -100,10 +100,15 @@ void configurar_arquivos(std::string f_files, std::vector<Processo *> &procs, Ge
         if (std::getline(ss, s_tam, ','))
             tam = std::stoi(s_tam);
 
-        std::string nome_limpo = "";
-        for (int i = 0; i < nome.length(); i++)
-            if (nome[i] != ' ')
-                nome_limpo += nome[i];
+        // remove espaços das extremidades
+        auto trim = [](std::string s) {
+            size_t start = s.find_first_not_of(" \t\r\n");
+            size_t end   = s.find_last_not_of(" \t\r\n");
+            if (start == std::string::npos) return std::string("");
+            return s.substr(start, end - start + 1);
+        };
+
+        std:: string nome_limpo = trim(nome);
 
         int pid = std::stoi(s_pid);
         bool processo_encontrado = false;
