@@ -1,21 +1,3 @@
-<<<<<<< HEAD
-# Implementação do Kernel
-
-## Instruções de execução
-
-Para compilar:
-```
-make
-```
-
-Para executar:
-
-```
-make run
-```
-
-
-=======
 # Pseudo-SO Multiprogramado - Universidade de Brasília (UnB)
 
 Este projeto consiste na implementação de um **Pseudo-Sistema Operacional Multiprogramado** como parte da avaliação prática da disciplina de **Sistemas Operacionais**, ministrada pela Profa. Aletéia Patrícia Favacho de Araújo.
@@ -60,4 +42,3 @@ make
 ```bash
 ./main
 ```
->>>>>>> bemAvançado
