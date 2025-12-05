@@ -6,6 +6,11 @@
 #include <iostream>
 #include "processo.h"
 
+/**
+ * @brief Implementa o escalonador de processos com múltiplas filas de prioridade.
+ * Gerencia seis filas distintas para processos de tempo real e de usuário,
+ *
+ */
 class Escalonador
 {
 public:
@@ -13,15 +18,17 @@ public:
     // Especificação de trabalho exige 6 filas( tr - Tempo Real, p1-p5 - Usuário (Prioridade) )
     //
     //
-    std::deque<Processo *> fila_tr; // Prioridade 0
+    std::deque<Processo *> fila_tr;
     std::deque<Processo *> fila_p1;
     std::deque<Processo *> fila_p2;
     std::deque<Processo *> fila_p3;
     std::deque<Processo *> fila_p4;
     std::deque<Processo *> fila_p5;
 
-    // Funcao para adicionar processo na fila correta
-    // Chamada quando o processo na chegada ou na preempção
+    /**
+     * @brief Adiciona um processo à fila correspondente com base em sua prioridade atual.
+     * @param p Ponteiro para o processo a ser adicionado.
+     */
     void adicionar(Processo *p)
     {
         if (p->prioridade_atual == 0)
@@ -50,8 +57,10 @@ public:
         }
     }
 
-    // Retorna o próximo da fila (ordem de prioridade)
-    // Verifica a fila_tr primeiro. Se vazia olhamos a p1, e assim por diante.
+    /**
+     * @brief Retorna o próximo processo a ser executado com base na prioridade das filas.
+     * @return Ponteiro para o próximo processo ou NULL se todas as filas estiverem vazias.
+     */
     Processo *proximo()
     {
         if (!fila_tr.empty())
@@ -69,8 +78,10 @@ public:
         return NULL;
     }
 
-    // Remove o processo da fila
-    // Usado depois que o Dispatcher
+    /**
+     * @brief Remove o processo da frente da fila correspondente à sua prioridade atual.
+     * @param p Ponteiro para o processo a ser removido.
+     */
     void remover_da_frente(Processo *p)
     {
         int prioridade = p->prioridade_atual;
@@ -88,8 +99,10 @@ public:
             fila_p5.pop_front();
     }
 
-    // Lógica do Aging (Envelhecimento)
-    // Varre da menor prioridade (5) para cima..
+    /**
+     * @brief Executa o mecanismo de aging para evitar starvation.
+     * Processos que aguardam há 10 ciclos em suas filas têm sua prioridade aumentada
+     */
     void executar_aging()
     {
 
@@ -113,18 +126,10 @@ public:
             }
             else
             {
-                // Se nao envelheceu o suficiente, volta pro final da fila 5
                 fila_p5.push_back(p);
             }
         }
 
-        /*
-        Desse ponto até o final da função 'executar_aging()' o processo é o mesmo que o suado na fila 5
-        Esta na ordem 4,3,2 de verificação
-        NÃO HÁ PROMOÇÃO PARA A FILA TR
-        */
-
-        // Verifica Fila 4
         tamanho = fila_p4.size();
         for (int i = 0; i < tamanho; i++)
         {

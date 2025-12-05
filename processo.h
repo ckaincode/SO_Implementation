@@ -4,17 +4,16 @@
 #include <vector>
 #include <string>
 
-// Armazena as operações de arquivos (files.txt)
+// Estrutura que representa uma instrução de I/O
 struct Instrucao
 {
     int pid;
     int codigo; // (0)Criar, (1)Deletar
     std::string arquivo;
-    int blocos;    // Usado só na criacao
-    int id_global; // Identificador global
+    int blocos;
+    int id_global;
 };
-
-// Estados possíveis do processo
+// Enumeração para os estados do processo
 enum Estado
 {
     PRONTO,
@@ -22,18 +21,23 @@ enum Estado
     BLOQUEADO,
     FINALIZADO
 };
-
+/**
+ * @brief Representa uma entidade de processo no pseudo-so.
+ *
+ * Armazena informações essenciais do processo, como PID, prioridades, tempos de execução,
+ * requisitos de memória e hardware, estado atual, e lista de instruções de I/O.
+ */
 class Processo
 {
 public:
-    int PID;                 // ID do processo(unico)
-    int prioridade_original; // Prioridade que veio no .txt, definine se é tempo real(0) ou usuário(1-5)
+    int PID;
+    int prioridade_original; // Prioridade que veio no .txt, define se é tempo real(0) ou usuário(1-5)
     int prioridade_atual;    // Prioridade que muda dinamicamente, utilizamos aging para alterar essa prioridade
 
     int t_chegada;
     int t_total;
-    int t_restante;       // Quanto falta para acabar o processo
-    int quantum_restante; // Quanto falta para acabar a vez dele na CPU
+    int t_restante;
+    int quantum_restante;
 
     // Dados de Memoria
     int blocos_mem_req;
@@ -50,7 +54,7 @@ public:
 
     // Lista de instrucoes desse processo
     std::vector<Instrucao> instrucoes_io;
-    int pc; // Contador
+    int pc; // Program Counter para instrucoes de I/O
 
     // Construtor inicializando as variaveis
     Processo(int id, int t0, int prio, int cpu, int mem, int imp, int scan, int mod, int dsk)
@@ -81,8 +85,16 @@ public:
         pc = 0;
     }
 
-    // --- Lógica do Quantum Dinâmico ---
-    // Implementa a tabela da especificação
+    /**
+     * @brief Reseta o quantum restante baseado na prioridade atual do processo.
+     * Define o quantum conforme as regras:
+     * - Prioridade 0 (Tempo Real): 10000 (não sofre preempção por tempo)
+     * - Prioridade 1: 6 unidades de tempo
+     * - Prioridade 2: 5 unidades de tempo
+     * - Prioridade 3: 4 unidades de tempo
+     * - Prioridade 4: 3 unidades de tempo
+     * - Prioridade 5: 2 unidades de tempo
+     */
     void resetar_quantum()
     {
         if (prioridade_atual == 0)

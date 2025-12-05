@@ -3,6 +3,12 @@
 
 #include "processo.h"
 
+/**
+ * @brief Gerencia os recursos de hardware do sistema.
+ *
+ * Controla a alocação e liberação de recursos como scanner, impressoras, modem e discos SATA.
+ * Garante que os recursos sejam alocados de forma atômica para evitar conflitos entre processos.
+ */
 class GerenciadorRecursos
 {
 public:

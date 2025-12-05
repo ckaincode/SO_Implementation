@@ -4,7 +4,6 @@
 #include <vector>
 #include "processo.h"
 /**
- * @class GerenciadorMemoria
  * @brief Representa a memória principal do pseudo-so.
  *
  * Além de armazenar a ocupação da memoria pelos processos, esta classe protege a alocação
@@ -64,14 +63,16 @@ public:
      */
     void desalocar(Processo *p)
     {
-        if (p->offset_memoria != -1)
+        int offset = p->offset_memoria;
+        int tamanho = p->blocos_mem_req;
+        if (offset == -1)
+            return;
+
+        for (int i = offset; i < offset + tamanho; i++)
         {
-            for (int i = p->offset_memoria; i < p->offset_memoria + p->blocos_mem_req; i++)
-            {
-                ram[i] = -1;
-            }
-            p->offset_memoria = -1;
+            ram[i] = -1;
         }
+        p->offset_memoria = -1;
     }
 };
 
