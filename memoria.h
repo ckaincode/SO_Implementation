@@ -1,0 +1,32 @@
+#ifndef MEMORIA_H
+#define MEMORIA_H
+
+#include <vector>
+#include "processo.h"
+/**
+ * @brief Representa a memória principal do pseudo-so.
+ *
+ * Além de armazenar a ocupação da memoria pelos processos, esta classe protege a alocação
+ * de memoria garantindo que processos de tempo real e usuário nao se misturem.
+ * Utiliza o algoritmo First-Fit para alocação de memória.
+ * Desaloca a memória quando o processo é finalizado de forma segura.
+ */
+class GerenciadorMemoria
+{
+public:
+    /** Inicialização da memoria com -1 em seus campos e tamanho total de 1024 blocos. */
+    std::vector<int> ram;
+    GerenciadorMemoria() : ram(1024, -1) {}
+
+    /** Tenta alocar memória para o processo p.
+     * @param p Ponteiro para o processo que requisita memória.
+     * @return true se a alocação foi bem sucedida, false caso contrário.
+     */
+    bool alocar(Processo *p);
+    /** Desaloca a memória ocupada pelo processo p.
+     * @param p Ponteiro para o processo que está sendo finalizado.
+     */
+    void desalocar(Processo *p);
+};
+
+#endif
