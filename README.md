@@ -39,6 +39,17 @@ make
 
 ### Como Executar 
 
-```bash
+Por padrão, o programa executará a partir dos arquivos nomeados como `files/processes.txt` e `files/files.txt`. Basta alterar o seu conteúdo e rodar:
+
+```bash 
 ./main
 ```
+
+Para executar com um arquivo especificado:
+
+```bash
+./main "[nome do Arquivo de Processos(OPT)]" "[nome do arquivos de disco(OPT)]"
+```
+
+
+
