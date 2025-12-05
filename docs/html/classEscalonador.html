@@ -66,7 +66,6 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="classEscalonador-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Escalonador Class Reference</div>  </div>
@@ -83,9 +82,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9311551f01c0a138b23b5964f98375b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classEscalonador.html#a9311551f01c0a138b23b5964f98375b5">adicionar</a> (<a class="el" href="classProcesso.html">Processo</a> *p)</td></tr>
 <tr class="memdesc:a9311551f01c0a138b23b5964f98375b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adiciona um processo na fila correspondente à sua prioridade atual.  <a href="classEscalonador.html#a9311551f01c0a138b23b5964f98375b5">More...</a><br /></td></tr>
 <tr class="separator:a9311551f01c0a138b23b5964f98375b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac561e20a3e7627693e2c28e741612bfa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classProcesso.html">Processo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classEscalonador.html#ac561e20a3e7627693e2c28e741612bfa">proximo</a> ()</td></tr>
-<tr class="memdesc:ac561e20a3e7627693e2c28e741612bfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Obtém o próximo processo a ser executado.  <a href="classEscalonador.html#ac561e20a3e7627693e2c28e741612bfa">More...</a><br /></td></tr>
-<tr class="separator:ac561e20a3e7627693e2c28e741612bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2074654c445d23001115df357e3a87e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classProcesso.html">Processo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classEscalonador.html#ac2074654c445d23001115df357e3a87e">proximo</a> ()</td></tr>
+<tr class="memdesc:ac2074654c445d23001115df357e3a87e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Obtém o próximo processo a ser executado.  <a href="classEscalonador.html#ac2074654c445d23001115df357e3a87e">More...</a><br /></td></tr>
+<tr class="separator:ac2074654c445d23001115df357e3a87e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00c90c557763d79c82c2214a9b4a2801"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classEscalonador.html#a00c90c557763d79c82c2214a9b4a2801">remover_da_frente</a> (<a class="el" href="classProcesso.html">Processo</a> *p)</td></tr>
 <tr class="memdesc:a00c90c557763d79c82c2214a9b4a2801"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove o processo da frente da fila correspondente à sua prioridade atual.  <a href="classEscalonador.html#a00c90c557763d79c82c2214a9b4a2801">More...</a><br /></td></tr>
 <tr class="separator:a00c90c557763d79c82c2214a9b4a2801"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -113,12 +112,6 @@ std::deque&lt; <a class="el" href="classProcesso.html">Processo</a> * &gt;&#160;
 <tr class="memitem:a39293b45be5d8a9a5234b044c3390c6c"><td class="memItemLeft" align="right" valign="top"><a id="a39293b45be5d8a9a5234b044c3390c6c"></a>
 std::deque&lt; <a class="el" href="classProcesso.html">Processo</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fila_p5</b></td></tr>
 <tr class="separator:a39293b45be5d8a9a5234b044c3390c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:a6fcd598c2ffe0e76da260b2a4d8582b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classEscalonador.html#a6fcd598c2ffe0e76da260b2a4d8582b5">aging_fila</a> (std::deque&lt; <a class="el" href="classProcesso.html">Processo</a> * &gt; &amp;fila_atual, std::deque&lt; <a class="el" href="classProcesso.html">Processo</a> * &gt; &amp;fila_superior, int prioridade_atual, int prioridade_subida)</td></tr>
-<tr class="memdesc:a6fcd598c2ffe0e76da260b2a4d8582b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Função auxiliar para aplicar aging em uma fila genérica.  <a href="classEscalonador.html#a6fcd598c2ffe0e76da260b2a4d8582b5">More...</a><br /></td></tr>
-<tr class="separator:a6fcd598c2ffe0e76da260b2a4d8582b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Classe responsável pelo escalonamento de processos utilizando múltiplas filas de prioridade. </p>
@@ -137,9 +130,6 @@ Private Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Escalonador::adicionar </td>
@@ -149,11 +139,6 @@ Private Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Adiciona um processo na fila correspondente à sua prioridade atual. </p>
@@ -166,73 +151,11 @@ Private Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6fcd598c2ffe0e76da260b2a4d8582b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6fcd598c2ffe0e76da260b2a4d8582b5">&#9670;&nbsp;</a></span>aging_fila()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Escalonador::aging_fila </td>
-          <td>(</td>
-          <td class="paramtype">std::deque&lt; <a class="el" href="classProcesso.html">Processo</a> * &gt; &amp;&#160;</td>
-          <td class="paramname"><em>fila_atual</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::deque&lt; <a class="el" href="classProcesso.html">Processo</a> * &gt; &amp;&#160;</td>
-          <td class="paramname"><em>fila_superior</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>prioridade_atual</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>prioridade_subida</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Função auxiliar para aplicar aging em uma fila genérica. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fila_atual</td><td>Fila onde os processos estão esperando. </td></tr>
-    <tr><td class="paramname">fila_superior</td><td>Fila para onde o processo sobe em caso de aging. </td></tr>
-    <tr><td class="paramname">prioridade_atual</td><td>Prioridade da fila atual. </td></tr>
-    <tr><td class="paramname">prioridade_subida</td><td>Prioridade ao subir. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a5575da2785bd8e3c66215359c95c8f70"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5575da2785bd8e3c66215359c95c8f70">&#9670;&nbsp;</a></span>executar_aging()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Escalonador::executar_aging </td>
@@ -241,11 +164,6 @@ Private Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Executa o mecanismo de aging. </p>
@@ -259,27 +177,19 @@ Private Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ac561e20a3e7627693e2c28e741612bfa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac561e20a3e7627693e2c28e741612bfa">&#9670;&nbsp;</a></span>proximo()</h2>
+<a id="ac2074654c445d23001115df357e3a87e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2074654c445d23001115df357e3a87e">&#9670;&nbsp;</a></span>proximo()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classProcesso.html">Processo</a>* Escalonador::proximo </td>
+          <td class="memname"><a class="el" href="classProcesso.html">Processo</a> * Escalonador::proximo </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Obtém o próximo processo a ser executado. </p>
@@ -293,9 +203,6 @@ Private Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Escalonador::remover_da_frente </td>
@@ -305,11 +212,6 @@ Private Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Remove o processo da frente da fila correspondente à sua prioridade atual. </p>
@@ -322,8 +224,9 @@ Private Member Functions</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="escalonador_8h_source.html">escalonador.h</a></li>
+<li>escalonador.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

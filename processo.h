@@ -83,30 +83,7 @@ public:
     /**
      * @brief Reatribui o quantum do processo com base na prioridade atual.
      */
-    void resetar_quantum()
-    {
-        switch (prioridade_atual)
-        {
-        case 0:
-            quantum_restante = 10000;
-            break;
-        case 1:
-            quantum_restante = 6;
-            break;
-        case 2:
-            quantum_restante = 5;
-            break;
-        case 3:
-            quantum_restante = 4;
-            break;
-        case 4:
-            quantum_restante = 3;
-            break;
-        default:
-            quantum_restante = 2;
-            break;
-        }
-    }
+    void resetar_quantum();
 };
 
 #endif

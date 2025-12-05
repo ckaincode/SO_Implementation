@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Simulador de SO com gerenciamento de processos, memória, recursos e operações de I/O.: Main Page</title>
+<title>Simulador de SO com gerenciamento de processos, memória, recursos e operações de I/O.: Pseudo-SO Multiprogramado - Universidade de Brasília (UnB)</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -62,11 +62,56 @@ $(function() {
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">Simulador de SO com gerenciamento de processos, memória, recursos e operações de I/O. Documentation</div>  </div>
+<div class="title">Pseudo-SO Multiprogramado - Universidade de Brasília (UnB) </div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p><a class="anchor" id="md_README"></a> Este projeto consiste na implementação de um <b>Pseudo-Sistema Operacional Multiprogramado</b> como parte da avaliação prática da disciplina de <b>Sistemas Operacionais</b>, ministrada pela Profa. Aletéia Patrícia Favacho de Araújo.</p>
+<p>O sistema simula a execução concorrente de processos, gerenciando memória, recursos de E/S e sistemas de arquivos, utilizando uma abordagem de arquitetura monolítica modular.</p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Equipe</h1>
+<ul>
+<li><b>Aluno 1:</b> [Caio César Gonçalves Ribeiro] - [21/1038217]</li>
+<li><b>Aluno 2:</b> [João Victor Cavallin Pereira] - [21/2008894]</li>
+<li><b>Aluno 3:</b> [Jhonatan Borges de Souza] - [18/0122975]</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md2"></a>
+Tecnologias Utilizadas</h1>
+<ul>
+<li><b>Linguagem:</b> C++ (Padrão C++11 ou superior)</li>
+<li><b>Documentação:</b> Doxygen</li>
+<li><b>Ambiente de Desenvolvimento:</b> Unix/Linux</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3"></a>
+Estrutura do Sistema</h1>
+<p>O projeto está dividido nos 5 módulos fundamentais exigidos:</p><ol type="1">
+<li><b>Processos:</b> Gerencia a criação e o contexto dos processos.</li>
+<li><b>Filas:</b> Implementa o escalonador com Múltiplas Filas com Realimentação (Feedback) e Aging.<ul>
+<li>1 Fila de Tempo Real (FIFO, prioridade 0).</li>
+<li>5 Filas de Usuário (Round-Robin com quantum dinâmico).</li>
+</ul>
+</li>
+<li><b>Memória:</b> Gerencia 1024 blocos de memória contígua (64 reservados para Tempo Real, 960 para Usuário).</li>
+<li><b>Recursos:</b> Gerencia a exclusão mútua de dispositivos (Scanner, Impressoras, Modem, SATA).</li>
+<li><b>Arquivos:</b> Simula operações de criação/deleção (Alocação contígua, método First-fit).</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md4"></a>
+Compilação e Execução</h1>
+<h2><a class="anchor" id="autotoc_md5"></a>
+Pré-requisitos</h2>
+<ul>
+<li>Compilador <code>g++</code> (GCC).</li>
+<li><code>make</code> (Opcional, caso utilize Makefile).</li>
+<li><code>doxygen</code> (Para gerar a documentação).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md6"></a>
+Como Compilar - Usando Make (recomendado)</h2>
+<div class="fragment"><div class="line">make</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+Como Executar</h2>
+<div class="fragment"><div class="line">./main</div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

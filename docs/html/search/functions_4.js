@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['operar_44',['operar',['../classGerenciadorArquivos.html#a776a9341808085026201553b6a2753c0',1,'GerenciadorArquivos']]]
+  ['operar_43',['operar',['../classGerenciadorArquivos.html#a776a9341808085026201553b6a2753c0',1,'GerenciadorArquivos']]]
 ];

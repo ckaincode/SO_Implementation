@@ -22,58 +22,11 @@ public:
      * @param p Ponteiro para o processo que requisita memória.
      * @return true se a alocação foi bem sucedida, false caso contrário.
      */
-    bool alocar(Processo *p)
-    {
-        int fim_busca = 1024;
-        int inicio_busca = p->prioridade_original == 0 ? 0 : 64;
-
-        int cont_livres = 0;
-        int idx_start = -1;
-
-        for (int i = inicio_busca; i < fim_busca; i++)
-        {
-            if (ram[i] == -1)
-            {
-                if (cont_livres == 0)
-                {
-                    idx_start = i;
-                }
-                cont_livres++;
-
-                if (cont_livres == p->blocos_mem_req)
-                {
-                    for (int j = idx_start; j < idx_start + cont_livres; j++)
-                    {
-                        ram[j] = p->PID;
-                    }
-                    p->offset_memoria = idx_start;
-                    return true;
-                }
-            }
-            else
-            {
-                cont_livres = 0;
-                idx_start = -1;
-            }
-        }
-        return false;
-    }
+    bool alocar(Processo *p);
     /** Desaloca a memória ocupada pelo processo p.
      * @param p Ponteiro para o processo que está sendo finalizado.
      */
-    void desalocar(Processo *p)
-    {
-        int offset = p->offset_memoria;
-        int tamanho = p->blocos_mem_req;
-        if (offset == -1)
-            return;
-
-        for (int i = offset; i < offset + tamanho; i++)
-        {
-            ram[i] = -1;
-        }
-        p->offset_memoria = -1;
-    }
+    void desalocar(Processo *p);
 };
 
 #endif
