@@ -195,8 +195,8 @@ void print_dispatcher(Processo *p)
  */
 int main(int argc, char **argv)
 {
-    std::string f_proc = "processes.txt";
-    std::string f_files = "files.txt";
+    std::string f_proc = "files/processes.txt";
+    std::string f_files = "files/files.txt";
     if (argc > 1)
         f_proc = argv[1];
     if (argc > 2)
